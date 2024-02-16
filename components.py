@@ -28,21 +28,21 @@ class Timer:
         self.start_time = None
     
     def draw_clock(self, inc):
-        self.screen.blit(self.clocks[self.clock // 5], (5, self.screen.get_height()-75))
+        self.screen.blit(self.clocks[self.clock // 7], (5, self.screen.get_height()-80))
         self.clock += inc
-        if self.clock >= len(self.clocks) * 5:
+        if self.clock >= len(self.clocks) * 7:
             self.clock = 0
         
     def draw(self):
         seconds = self.tick()
 
         if seconds >= self.time:
-            pygame.draw.rect(self.screen, (0, 0, 0), (10, self.screen.get_height()-60, self.screen.get_width()-20, 50), 2, border_radius=20)
+            pygame.draw.rect(self.screen, (0, 0, 0), (10, self.screen.get_height()-65, self.screen.get_width()-20, 50), 2, border_radius=20)
             self.draw_clock(0)
             return True
 
-        pygame.draw.rect(self.screen, (255, 0, 0), (10, self.screen.get_height()-60, (self.screen.get_width()-20) * (1 - (seconds / self.time)), 50), border_radius=20)
-        pygame.draw.rect(self.screen, (0, 0, 0), (10, self.screen.get_height()-60, self.screen.get_width()-20, 50), 2, border_radius=20)
+        pygame.draw.rect(self.screen, (255, 0, 0), (10, self.screen.get_height()-65, (self.screen.get_width()-20) * (1 - (seconds / self.time)), 50), border_radius=20)
+        pygame.draw.rect(self.screen, (0, 0, 0), (10, self.screen.get_height()-65, self.screen.get_width()-20, 50), 2, border_radius=20)
         self.draw_clock(1)
 
     def get_ratio(self):
@@ -100,3 +100,19 @@ class AnimatedText:
             self.inc_y = -self.inc_y
         if self.x < self.base_x - 20 or self.x > self.base_x + 20:
             self.inc_x = -self.inc_x
+
+
+class GameFinishSymbol():
+    def __init__(self, screen):
+        self.screen = screen
+        self.passed = pygame.image.load("assets/img/symbols/passed.png").convert_alpha()
+        self.lost = pygame.image.load("assets/img/symbols/lost.png").convert_alpha() 
+        self.size = 10
+
+    def draw(self, passed):
+        symbol = self.passed if passed else self.lost
+        self.size += 50
+        if self.size >= 500:
+            self.screen.blit(pygame.transform.scale(symbol, (500, 500)), (self.screen.get_width() // 2 - 250, self.screen.get_height() // 2 - 250))
+            return True
+        self.screen.blit(pygame.transform.scale(symbol, (self.size, self.size)), (self.screen.get_width() // 2 - self.size // 2, self.screen.get_height() // 2 - self.size // 2))

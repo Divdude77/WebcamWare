@@ -37,6 +37,7 @@ class HoleInTheWall(Game):
         self.running = True
         
         self.entry_text = AnimatedText("Dodge!", self.screen.get_width() // 2, self.screen.get_height() // 2, self.screen, 72, (0, 0, 0), (255, 255, 255), 3, 0.5)
+        self.game_over_symbol = GameFinishSymbol(self.screen)
 
         self.back = pygame.transform.scale(pygame.image.load("assets/img/body/back.png").convert_alpha(), (250, 300))
         self.upper_arm = pygame.transform.scale(pygame.image.load("assets/img/body/upperarm.png").convert_alpha(), (200, 200))
@@ -84,21 +85,9 @@ class HoleInTheWall(Game):
 
         if self.entry_text.draw():
             if self.timer.draw():
-                if self.won:
-                    font = pygame.font.Font(None, 36)
-                    text = font.render("You won!", True, (0, 0, 0))
-                    text_rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
-                    self.screen.blit(text, text_rect)
-                    if self.timer.tick() - self.timer.time >= 1.5:
-                        return True
-                
-                else:
-                    font = pygame.font.Font(None, 36)
-                    text = font.render("You lost.", True, (0, 0, 0))
-                    text_rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
-                    self.screen.blit(text, text_rect)
-                    if self.timer.tick() - self.timer.time >= 1.5:
-                        return True
+                self.game_over_symbol.draw(self.won)
+                if self.timer.tick() - self.timer.time >= 1.5:
+                    return True
 
         draw_body_outline(self.screen, body_landmarks, 25, 25, 100, 75)
 
