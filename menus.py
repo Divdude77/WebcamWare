@@ -203,7 +203,7 @@ class GameRunner(Menu):
         self.speed = 1
         self.games = [HoleInTheWall]
         self.inter_game_menu = InterGameMenu(screen, 4)
-        self.current_game = self.games[0](screen, self.speed)
+        self.current_game = None
         self.current_game_won = None
 
     def draw(self):

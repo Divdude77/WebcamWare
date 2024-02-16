@@ -25,10 +25,10 @@ class HoleInTheWall(Game):
         self.web_cam.startWebcam()
         self.timer = Timer(5, screen)
 
-        self.angles = [[90, 270, 90, 270], [90, 270, 180, 180]]
-        self.walls = [pygame.image.load("assets/img/walls/wall1.png").convert_alpha(), pygame.image.load("assets/img/walls/wall2.png").convert_alpha(), pygame.image.load("assets/img/walls/wall3.png").convert_alpha()]
+        self.angles = [[90, 270, 90, 270], [90, 270, 180, 180], [180, 180, 180, 180], [180, 270, 180, 180], [90, 180, 180, 180]] # Left shoulder, Right shoulder, Left elbow, Right elbow
+        self.walls = [pygame.image.load("assets/img/walls/wall1.png").convert_alpha(), pygame.image.load("assets/img/walls/wall2.png").convert_alpha(), pygame.image.load("assets/img/walls/wall3.png").convert_alpha(), pygame.image.load("assets/img/walls/wall4.png").convert_alpha(), pygame.image.load("assets/img/walls/wall5.png").convert_alpha()]
         self.background = pygame.transform.scale(pygame.image.load("assets/img/walls/background.png"), (self.screen.get_width(), self.screen.get_height()))
-        self.wall = random.randint(0, 1)   
+        self.wall = random.randint(0, 4)   
         self.wall_scale = 0.3
 
         self.shoulders_locked = False
@@ -39,6 +39,7 @@ class HoleInTheWall(Game):
         self.entry_text = AnimatedText("Dodge!", self.screen.get_width() // 2, self.screen.get_height() // 2, self.screen, 72, (0, 0, 0), (255, 255, 255), 3, 0.5)
         self.game_over_symbol = GameFinishSymbol(self.screen)
 
+        self.head = pygame.transform.scale(pygame.image.load("assets/img/body/head.png").convert_alpha(), (200, 200))
         self.back = pygame.transform.scale(pygame.image.load("assets/img/body/back.png").convert_alpha(), (250, 300))
         self.upper_arm = pygame.transform.scale(pygame.image.load("assets/img/body/upperarm.png").convert_alpha(), (200, 200))
         self.lower_arm = pygame.transform.scale(pygame.image.load("assets/img/body/lowerarm.png").convert_alpha(), (200, 200))
@@ -51,7 +52,10 @@ class HoleInTheWall(Game):
         return rotated_image, rect
     
     def find_elbow(self, shoulder_coords, angle, distance):
-        if angle < 180:
+        if angle == 180:
+            return shoulder_coords[0], shoulder_coords[1] - distance
+        
+        if angle <= 180:
             distance = -distance
 
         angle_rad = math.radians(90 - angle)     # (90 - angle) is angle between arm and ground (x-axis).
@@ -95,9 +99,6 @@ class HoleInTheWall(Game):
         # Create body
         body_coords = (self.screen.get_width() // 2 - self.back.get_width() // 2, self.screen.get_height() // 1.5) 
 
-        # Draw head
-        pygame.draw.circle(self.screen, (0, 0, 0), (self.screen.get_width() // 2, self.screen.get_height() // 1.75), 50)
-
         # Draw shoulders
         surface_shoulers = ((body_coords[0] + 40, self.screen.get_height() // 1.5 + 40), (body_coords[0] + self.back.get_width() - 40, self.screen.get_height() // 1.5 + 40))  # 40 -> offset into body
 
@@ -119,6 +120,9 @@ class HoleInTheWall(Game):
 
         # Draw body
         self.screen.blit(self.back, (self.screen.get_width() // 2 - self.back.get_width() // 2, self.screen.get_height() // 1.5))   
+
+        # Draw head
+        self.screen.blit(self.head, (self.screen.get_width() // 2 - self.head.get_width() // 2, self.screen.get_height() // 1.5 - self.head.get_height() + 30))
 
     def draw_upper_arms(self, l_shoulder_angle, r_shoulder_angle, surface_shoulers):
         # Left
