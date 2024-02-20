@@ -7,14 +7,14 @@ class Timer:
         self.time = time
         self.start_time = None
         self.clocks = [
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock0.png").convert_alpha(), (75, 75)),
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock1.png").convert_alpha(), (75, 75)),
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock2.png").convert_alpha(), (75, 75)),
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock3.png").convert_alpha(), (75, 75)),
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock4.png").convert_alpha(), (75, 75)),
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock5.png").convert_alpha(), (75, 75)),
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock6.png").convert_alpha(), (75, 75)),
-            pygame.transform.scale(pygame.image.load("assets/img/clock/clock7.png").convert_alpha(), (75, 75)),
+            pygame.image.load("assets/img/clock/clock0.png").convert_alpha(),
+            pygame.image.load("assets/img/clock/clock1.png").convert_alpha(),
+            pygame.image.load("assets/img/clock/clock2.png").convert_alpha(),
+            pygame.image.load("assets/img/clock/clock3.png").convert_alpha(),
+            pygame.image.load("assets/img/clock/clock4.png").convert_alpha(),
+            pygame.image.load("assets/img/clock/clock5.png").convert_alpha(),
+            pygame.image.load("assets/img/clock/clock6.png").convert_alpha(),
+            pygame.image.load("assets/img/clock/clock7.png").convert_alpha()
                        ]
         self.clock = 0
 
@@ -112,6 +112,6 @@ class GameFinishSymbol:
         symbol = self.passed if passed else self.lost
         self.size += 50
         if self.size >= 500:
-            self.screen.blit(pygame.transform.scale(symbol, (500, 500)), (self.screen.get_width() // 2 - 250, self.screen.get_height() // 2 - 250))
+            self.screen.blit(symbol, (self.screen.get_width() // 2 - 250, self.screen.get_height() // 2 - 250))
             return True
         self.screen.blit(pygame.transform.scale(symbol, (self.size, self.size)), (self.screen.get_width() // 2 - self.size // 2, self.screen.get_height() // 2 - self.size // 2))

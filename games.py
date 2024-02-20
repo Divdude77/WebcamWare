@@ -17,7 +17,10 @@ class Game:
         pass
 
     def handle_event(self, event):
-        pass
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                exit()
 
 class HoleInTheWall(Game):
     def __init__(self, screen, speed):
@@ -28,8 +31,8 @@ class HoleInTheWall(Game):
         self.timer = Timer(5, screen)
 
         self.angles = [[90, 270, 90, 270], [90, 270, 180, 180], [180, 180, 180, 180], [180, 270, 180, 180], [90, 180, 180, 180]] # Left shoulder, Right shoulder, Left elbow, Right elbow
-        self.walls = [pygame.image.load("assets/img/walls/wall1.png").convert_alpha(), pygame.image.load("assets/img/walls/wall2.png").convert_alpha(), pygame.image.load("assets/img/walls/wall3.png").convert_alpha(), pygame.image.load("assets/img/walls/wall4.png").convert_alpha(), pygame.image.load("assets/img/walls/wall5.png").convert_alpha()]
-        self.background = pygame.transform.scale(pygame.image.load("assets/img/walls/background.png"), (self.screen.get_width(), self.screen.get_height()))
+        self.walls = [pygame.image.load("assets/img/games/holeinthewall/walls/wall1.png").convert_alpha(), pygame.image.load("assets/img/games/holeinthewall/walls/wall2.png").convert_alpha(), pygame.image.load("assets/img/games/holeinthewall/walls/wall3.png").convert_alpha(), pygame.image.load("assets/img/games/holeinthewall/walls/wall4.png").convert_alpha(), pygame.image.load("assets/img/games/holeinthewall/walls/wall5.png").convert_alpha()]
+        self.background = pygame.transform.scale(pygame.image.load("assets/img/games/holeinthewall/walls/background.png"), (self.screen.get_width(), self.screen.get_height()))
         self.wall = random.randint(0, 4)   
         self.wall_scale = 0.3
 
@@ -40,10 +43,10 @@ class HoleInTheWall(Game):
         self.entry_text = AnimatedText("Dodge!", self.screen.get_width() // 2, self.screen.get_height() // 2, self.screen, 72, (0, 0, 0), (255, 255, 255), 3, 0.5)
         self.game_over_symbol = GameFinishSymbol(self.screen)
 
-        self.head = pygame.transform.scale(pygame.image.load("assets/img/body/head.png").convert_alpha(), (200, 200))
-        self.back = pygame.transform.scale(pygame.image.load("assets/img/body/back.png").convert_alpha(), (250, 300))
-        self.upper_arm = pygame.transform.scale(pygame.image.load("assets/img/body/upperarm.png").convert_alpha(), (200, 200))
-        self.lower_arm = pygame.transform.scale(pygame.image.load("assets/img/body/lowerarm.png").convert_alpha(), (200, 200))
+        self.head = pygame.image.load("assets/img/games/holeinthewall/body/head.png").convert_alpha()
+        self.back = pygame.image.load("assets/img/games/holeinthewall/body/back.png").convert_alpha()
+        self.upper_arm = pygame.image.load("assets/img/games/holeinthewall/body/upperarm.png").convert_alpha()
+        self.lower_arm = pygame.image.load("assets/img/games/holeinthewall/body/lowerarm.png").convert_alpha()
 
     def rotate(self, surface, angle, pivot):
         offset = pygame.math.Vector2(0, surface.get_height() // 2)

@@ -15,7 +15,10 @@ class Menu:
         pass
 
     def handle_event(self, event):
-        pass
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                exit()
 
 
 class HomeMenu(Menu):
@@ -166,10 +169,10 @@ class InterGameMenu(Menu):
         super().__init__(screen)
         self.lives = [120] * 3
         self.life = 2
-        self.life_img = pygame.transform.scale(pygame.image.load("assets/img/lives/webcam.png").convert_alpha(), (120, 120))
-        self.background = pygame.transform.scale(pygame.image.load("assets/img/lives/background.png").convert_alpha(), (self.screen.get_width(), self.screen.get_height()))
+        self.life_img = pygame.image.load("assets/img/lives/webcam.png").convert_alpha()
+        self.background = pygame.transform.scale(pygame.image.load("assets/img/lives/background.png"), (self.screen.get_width(), self.screen.get_height()))
         self.frame = pygame.transform.scale(pygame.image.load("assets/img/lives/frame.png").convert_alpha(), (self.screen.get_width(), self.screen.get_height()))
-        self.skull = pygame.transform.scale(pygame.image.load("assets/img/lives/skull.png").convert_alpha(), (120, 120))
+        self.skull = pygame.image.load("assets/img/lives/skull.png").convert_alpha()
         self.timer = Timer(2, screen)
         self.life_lost = False
         self.font = pygame.font.Font("assets/fonts/easvhs.ttf", 108)
