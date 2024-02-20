@@ -10,6 +10,8 @@ class Game:
     def __init__(self, screen, speed):
         self.screen = screen
         self.speed = speed
+        self.won = False
+        self.snapshot = None
 
     def draw(self):
         pass
@@ -33,7 +35,6 @@ class HoleInTheWall(Game):
 
         self.shoulders_locked = False
         self.elbows_locked = False
-        self.won = False
         self.running = True
         
         self.entry_text = AnimatedText("Dodge!", self.screen.get_width() // 2, self.screen.get_height() // 2, self.screen, 72, (0, 0, 0), (255, 255, 255), 3, 0.5)
@@ -89,6 +90,9 @@ class HoleInTheWall(Game):
 
         if self.entry_text.draw():
             if self.timer.draw():
+                if self.snapshot is None:
+                    self.snapshot = self.web_cam.returnFrame()
+
                 self.game_over_symbol.draw(self.won)
                 if self.timer.tick() - self.timer.time >= 1.5:
                     return True

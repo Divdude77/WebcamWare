@@ -71,7 +71,6 @@ class AnimatedText:
     
     def draw_text(self, x, y, color):
         font = pygame.font.Font("assets/fonts/easvhs.ttf", self.font_size)
-
         text = font.render(self.text, True, color)
         text_rect = text.get_rect(center=(x, y))
         self.screen.blit(text, text_rect)
@@ -102,7 +101,7 @@ class AnimatedText:
             self.inc_x = -self.inc_x
 
 
-class GameFinishSymbol():
+class GameFinishSymbol:
     def __init__(self, screen):
         self.screen = screen
         self.passed = pygame.image.load("assets/img/symbols/passed.png").convert_alpha()

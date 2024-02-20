@@ -162,22 +162,39 @@ class GameOverMenu(Menu):
 
 
 class InterGameMenu(Menu):
-    def __init__(self, screen, lives):
+    def __init__(self, screen):
         super().__init__(screen)
-        self.lives = [50] * lives + [0] * (4 - lives)
-        self.life = 3
+        self.lives = [120] * 3
+        self.life = 2
+        self.life_img = pygame.transform.scale(pygame.image.load("assets/img/lives/webcam.png").convert_alpha(), (120, 120))
+        self.background = pygame.transform.scale(pygame.image.load("assets/img/lives/background.png").convert_alpha(), (self.screen.get_width(), self.screen.get_height()))
+        self.frame = pygame.transform.scale(pygame.image.load("assets/img/lives/frame.png").convert_alpha(), (self.screen.get_width(), self.screen.get_height()))
+        self.skull = pygame.transform.scale(pygame.image.load("assets/img/lives/skull.png").convert_alpha(), (120, 120))
         self.timer = Timer(2, screen)
         self.life_lost = False
+        self.font = pygame.font.Font("assets/fonts/easvhs.ttf", 108)
 
-    def draw(self, game_won):
-        self.screen.fill((0, 0, 0))
+    def draw(self, game_won, snapshot):
+        self.screen.blit(self.background, (0, 0))
+        self.screen.blit(snapshot, (self.screen.get_width() // 2.01 - snapshot.get_width() // 2, 5 * self.screen.get_height() // 6 - snapshot.get_height() // 2))
+        self.screen.blit(self.frame, (0, 0))
+
+        if self.life >= -1:
+            text = self.font.render(str(self.life + 1), True, (0, 255, 0))
+            if self.life == -1:
+                text = self.font.render(str(self.life + 1), True, (255, 0, 0))
+            text_rect = text.get_rect(center=(self.screen.get_width() // 1.13 , self.screen.get_height() // 5.7))
+            self.screen.blit(text, text_rect)
+        
+        else:
+            self.screen.blit(self.skull, (self.screen.get_width() // 1.13 - 60, self.screen.get_height() // 5.7 - 60))
 
         secs = self.timer.tick()
 
         if secs > 0.5:
             if not game_won and game_won is not None and not self.life_lost:
                 if self.lives[self.life] > 0:
-                    self.lives[self.life] -= 0.85
+                    self.lives[self.life] -= 2
                 
                 else:
                     self.life -= 1
@@ -190,11 +207,24 @@ class InterGameMenu(Menu):
             self.timer.reset()
             return True
 
-    def draw_lives(self):        
-        pygame.draw.circle(self.screen, (255, 255, 255), (self.screen.get_width() // 2 - 300, self.screen.get_height() // 2), self.lives[0])
-        pygame.draw.circle(self.screen, (255, 255, 255), (self.screen.get_width() // 2 - 100, self.screen.get_height() // 2), self.lives[1])
-        pygame.draw.circle(self.screen, (255, 255, 255), (self.screen.get_width() // 2 + 100, self.screen.get_height() // 2), self.lives[2])
-        pygame.draw.circle(self.screen, (255, 255, 255), (self.screen.get_width() // 2 + 300, self.screen.get_height() // 2), self.lives[3])
+    def draw_lives(self):
+        if self.lives[0] != 0:
+            if self.lives[0] < 120:
+                self.screen.blit(pygame.transform.scale(self.life_img, (self.lives[0], self.lives[0])), (self.screen.get_width() // 2 - self.lives[0] // 2, self.screen.get_height() // 2 - self.lives[0] // 2))
+            else:
+                self.screen.blit(self.life_img, (self.screen.get_width() // 2 - 60, self.screen.get_height() // 2 - 60))
+        
+        if self.lives[1] != 0:
+            if self.lives[1] < 120:
+                self.screen.blit(pygame.transform.scale(self.life_img, (self.lives[1], self.lives[1])), (self.screen.get_width() // 4 - self.lives[1] // 2, self.screen.get_height() // 2 - self.lives[1] // 2))
+            else:
+                self.screen.blit(self.life_img, (self.screen.get_width() // 4 - 60, self.screen.get_height() // 2 - 60))
+
+        if self.lives[2] != 0:
+            if self.lives[2] < 120:
+                self.screen.blit(pygame.transform.scale(self.life_img, (self.lives[2], self.lives[2])), (3 * self.screen.get_width() // 4 - self.lives[2] // 2, self.screen.get_height() // 2 - self.lives[2] // 2))
+            else:
+                self.screen.blit(self.life_img, (3 * self.screen.get_width() // 4 - 60, self.screen.get_height() // 2 - 60))
 
 
 class GameRunner(Menu):
@@ -202,21 +232,23 @@ class GameRunner(Menu):
         super().__init__(screen)
         self.speed = 1
         self.games = [HoleInTheWall]
-        self.inter_game_menu = InterGameMenu(screen, 4)
+        self.inter_game_menu = InterGameMenu(screen)
         self.current_game = None
         self.current_game_won = None
+        self.snapshot = pygame.surface.Surface((self.screen.get_width() // 4, self.screen.get_height() // 4))
+        self.snapshot.fill((255, 255, 255))
 
     def draw(self):
-        self.screen.fill((255, 255, 255))
-
         if not self.current_game:
-            if self.inter_game_menu.draw(self.current_game_won):
-                if self.inter_game_menu.life < 0:
+            if self.inter_game_menu.draw(self.current_game_won, self.snapshot):
+                if self.inter_game_menu.life < -1:
                     return GameOverMenu(self.screen)
                 
                 self.current_game = self.games[random.randint(0, len(self.games)-1)](self.screen, self.speed)
                 self.current_game_won = False
 
         elif self.current_game.draw():
+            frame = cv2.rotate(cv2.cvtColor(self.current_game.snapshot, cv2.COLOR_BGR2RGB), cv2.ROTATE_90_COUNTERCLOCKWISE)
+            self.snapshot = pygame.transform.scale(pygame.surfarray.make_surface(frame), (self.screen.get_width() // 4, self.screen.get_height() // 4))
             self.current_game_won = self.current_game.won
             self.current_game = None

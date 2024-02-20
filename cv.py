@@ -18,7 +18,7 @@ class WebCam():
     
     def startWebcam(self):
         if not self.cap:
-            self.cap = cv2.VideoCapture(0)
+            self.cap = cv2.VideoCapture(1)
     
     def stopWebcam(self):
         if self.cap:
