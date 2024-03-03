@@ -12,6 +12,8 @@ class Game:
         self.speed = speed
         self.won = False
         self.snapshot = None
+        
+        self.game_over_symbol = GameFinishSymbol(self.screen)
 
     def draw(self):
         pass
@@ -41,7 +43,6 @@ class HoleInTheWall(Game):
         self.running = True
         
         self.entry_text = AnimatedText("Dodge!", self.screen.get_width() // 2, self.screen.get_height() // 2, self.screen, 72, (0, 0, 0), (255, 255, 255), 3, 0.5)
-        self.game_over_symbol = GameFinishSymbol(self.screen)
 
         self.head = pygame.image.load("assets/img/games/holeinthewall/body/head.png").convert_alpha()
         self.back = pygame.image.load("assets/img/games/holeinthewall/body/back.png").convert_alpha()
@@ -192,3 +193,103 @@ class HoleInTheWall(Game):
             return
 
         self.screen.blit(pygame.transform.scale(self.walls[self.wall], (int(w * self.wall_scale), int(h * self.wall_scale))).convert_alpha(), ((1-self.wall_scale)/2 * w, (1-self.wall_scale)/2 * h))
+
+
+class ClearTheFog(Game):
+    def __init__(self, screen, speed):
+        super().__init__(screen, speed)
+        self.pose_estimator = PoseEstimator()
+        self.web_cam = WebCam()
+        self.web_cam.startWebcam()
+        self.timer = Timer(10, screen)
+
+        self.background = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/background.png"), (self.screen.get_width(), self.screen.get_height()))
+        self.hand_l = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/hand_l.png").convert_alpha(), (75, 100))
+        self.hand_r = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/hand_r.png").convert_alpha(), (75, 100))
+        self.fog = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/fog.png").convert_alpha(), (200, 200))
+
+        self.prev_l = None
+        self.prev_r = None
+
+        self.fogs = {}
+        self.grid_size = self.screen.get_width() // 10
+        grid = [(i,j) for i in range(0, self.screen.get_width()-self.grid_size, self.grid_size) for j in range(0, self.screen.get_height()-self.grid_size, self.grid_size)]
+
+        while grid:
+            i = random.choice(grid)
+            grid.remove(i)
+            if random.choice([0, 1, 1]):
+                self.fogs[i] = [i[0] + self.grid_size // 2 - self.fog.get_width() // 2, i[1] + self.grid_size // 2 - self.fog.get_height() // 2, 200]
+
+        self.entry_text = AnimatedText("Clear!", self.screen.get_width() // 2, self.screen.get_height() // 2, self.screen, 72, (0, 0, 0), (255, 255, 255), 3, 0.5)
+        self.win_time = None
+
+    def get_adjusted_landmarks(self, body_landmarks):
+        if not body_landmarks: return None, None
+
+        l_x = (2 * min(max(body_landmarks[15].x, 0.25), 0.75) - 0.5) * self.screen.get_width() - self.hand_l.get_width() // 2
+        l_y = (2 * min(max(body_landmarks[15].y, 0.5), 1) - 1) * self.screen.get_height() - self.hand_l.get_height() // 2
+        r_x = (2 * min(max(body_landmarks[16].x, 0.25), 0.75) - 0.5) * self.screen.get_width() - self.hand_r.get_width() // 2
+        r_y = (2 * min(max(body_landmarks[16].y, 0.5), 1) - 1) * self.screen.get_height() - self.hand_r.get_height() // 2
+
+        return (l_x, l_y), (r_x, r_y)
+
+    def draw(self):
+        body_landmarks = self.pose_estimator.getPoints(self.web_cam.returnFrame(), [11, 12, 13, 14, 15, 16, 23, 24])
+        adjusted_body_landmarks = self.get_adjusted_landmarks(body_landmarks)
+
+        self.screen.blit(self.background, (0, 0))
+        self.draw_fog()
+        self.draw_hand(adjusted_body_landmarks)
+
+        if self.entry_text.draw():
+            if self.timer.draw() or self.won:
+                if self.snapshot is None:
+                    self.snapshot = self.web_cam.returnFrame()
+                self.game_over_symbol.draw(self.won)
+
+                if not self.win_time: self.win_time = self.timer.tick()
+
+                if self.timer.tick() - self.win_time >= 1.5:
+                    return True
+            
+            else:
+                if adjusted_body_landmarks:
+                    l, r = adjusted_body_landmarks
+                    hand_l = (l[0] // self.grid_size * self.grid_size, l[1] // self.grid_size * self.grid_size)
+                    hand_r = (r[0] // self.grid_size * self.grid_size, r[1] // self.grid_size * self.grid_size)
+    
+                    if hand_l != self.prev_l:
+                        self.prev_l = hand_l
+                        if hand_l in self.fogs:
+                            if self.fogs[hand_l][2] > 0:
+                                self.fogs[hand_l][2] -= 200
+                                if self.fogs[hand_l][2] == 0:
+                                    del self.fogs[hand_l]
+                    
+                    if hand_r != self.prev_r:
+                        self.prev_r = hand_r
+                        if hand_r in self.fogs:
+                            if self.fogs[hand_r][2] > 0:
+                                self.fogs[hand_r][2] -= 200
+                                if self.fogs[hand_r][2] == 0:
+                                    del self.fogs[hand_r]
+
+        draw_body_outline(self.screen, body_landmarks, 25, 25, 100, 75)
+
+        if not self.fogs and not self.won:
+            self.won = True
+            self.win_time = self.timer.tick()
+
+    def draw_fog(self):
+        for i in self.fogs:
+            self.fog.set_alpha(self.fogs[i][2])
+            self.screen.blit(self.fog, self.fogs[i][:2])
+            # pygame.draw.rect(self.screen, (255, 0, 0), (i[0], i[1], self.grid_size, self.grid_size), 2)      # Grid
+
+    def draw_hand(self, adjusted_body_landmarks):
+        if not adjusted_body_landmarks: return
+
+        hand_l_coords, hand_r_coords = adjusted_body_landmarks
+        self.screen.blit(self.hand_l, hand_l_coords)
+        self.screen.blit(self.hand_r, hand_r_coords)

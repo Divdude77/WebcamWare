@@ -3,19 +3,19 @@ from sys import exit
 
 from cv import *
 from menus import *
-from games import *
+from games.games import *
 from components import *
 
 pygame.init()
 WINDOW_WIDTH = 1080
 WINDOW_HEIGHT = 720
-screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))#, pygame.FULLSCREEN)
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("WebcamWare")
 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 3)
 clock = pygame.time.Clock()
 
 # menu = HomeMenu(screen)
-# menu = HoleInTheWall(screen, 10)
+# menu = ClearTheFog(screen, 10)
 menu = GameRunner(screen)
 # menu = GameOverMenu(screen)
 
