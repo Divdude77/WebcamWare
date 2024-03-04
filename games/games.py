@@ -254,7 +254,7 @@ class ClearTheFog(Game):
                     return True
             
             else:
-                if adjusted_body_landmarks:
+                if all(adjusted_body_landmarks):
                     l, r = adjusted_body_landmarks
                     hand_l = (l[0] // self.grid_size * self.grid_size, l[1] // self.grid_size * self.grid_size)
                     hand_r = (r[0] // self.grid_size * self.grid_size, r[1] // self.grid_size * self.grid_size)
@@ -288,8 +288,10 @@ class ClearTheFog(Game):
             # pygame.draw.rect(self.screen, (255, 0, 0), (i[0], i[1], self.grid_size, self.grid_size), 2)      # Grid
 
     def draw_hand(self, adjusted_body_landmarks):
-        if not adjusted_body_landmarks: return
-
         hand_l_coords, hand_r_coords = adjusted_body_landmarks
+        
+        if not all(adjusted_body_landmarks):
+            return
+
         self.screen.blit(self.hand_l, hand_l_coords)
         self.screen.blit(self.hand_r, hand_r_coords)
