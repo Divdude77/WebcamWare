@@ -1,7 +1,7 @@
 import pygame
 
 from cv import *
-from draw import draw_body_outline
+from functions import draw_body_outline, clamp
 from components import *
 import random
 
@@ -10,6 +10,9 @@ class Game:
     def __init__(self, screen, speed):
         self.screen = screen
         self.speed = speed
+        self.pose_estimator = PoseEstimator()
+        self.web_cam = WebCam()
+        self.web_cam.startWebcam()
         self.won = False
         self.snapshot = None
         
@@ -27,9 +30,6 @@ class Game:
 class HoleInTheWall(Game):
     def __init__(self, screen, speed):
         super().__init__(screen, speed)
-        self.pose_estimator = PoseEstimator()
-        self.web_cam = WebCam()
-        self.web_cam.startWebcam()
         self.timer = Timer(5, screen)
 
         self.angles = [[90, 270, 90, 270], [90, 270, 180, 180], [180, 180, 180, 180], [180, 270, 180, 180], [90, 180, 180, 180]] # Left shoulder, Right shoulder, Left elbow, Right elbow
@@ -198,18 +198,12 @@ class HoleInTheWall(Game):
 class ClearTheFog(Game):
     def __init__(self, screen, speed):
         super().__init__(screen, speed)
-        self.pose_estimator = PoseEstimator()
-        self.web_cam = WebCam()
-        self.web_cam.startWebcam()
         self.timer = Timer(10, screen)
 
         self.background = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/background.png"), (self.screen.get_width(), self.screen.get_height()))
         self.hand_l = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/hand_l.png").convert_alpha(), (75, 100))
         self.hand_r = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/hand_r.png").convert_alpha(), (75, 100))
         self.fog = pygame.transform.scale(pygame.image.load("assets/img/games/clearthefog/fog.png").convert_alpha(), (200, 200))
-
-        self.prev_l = None
-        self.prev_r = None
 
         self.fogs = {}
         self.grid_size = self.screen.get_width() // 10
@@ -227,10 +221,10 @@ class ClearTheFog(Game):
     def get_adjusted_landmarks(self, body_landmarks):
         if not body_landmarks: return None, None
 
-        l_x = (2 * min(max(body_landmarks[15].x, 0.25), 0.75) - 0.5) * self.screen.get_width() - self.hand_l.get_width() // 2
-        l_y = (2 * min(max(body_landmarks[15].y, 0.5), 1) - 1) * self.screen.get_height() - self.hand_l.get_height() // 2
-        r_x = (2 * min(max(body_landmarks[16].x, 0.25), 0.75) - 0.5) * self.screen.get_width() - self.hand_r.get_width() // 2
-        r_y = (2 * min(max(body_landmarks[16].y, 0.5), 1) - 1) * self.screen.get_height() - self.hand_r.get_height() // 2
+        l_x = (2 * clamp(body_landmarks[15].x, 0.25, 0.75) - 0.5) * self.screen.get_width() - self.hand_l.get_width() // 2
+        l_y = (2 * clamp(body_landmarks[15].y, 0.5, 1) - 1) * self.screen.get_height() - self.hand_l.get_height() // 2
+        r_x = (2 * clamp(body_landmarks[16].x, 0.25, 0.75) - 0.5) * self.screen.get_width() - self.hand_r.get_width() // 2
+        r_y = (2 * clamp(body_landmarks[16].y, 0.5, 1) - 1) * self.screen.get_height() - self.hand_r.get_height() // 2
 
         return (l_x, l_y), (r_x, r_y)
 
@@ -254,26 +248,22 @@ class ClearTheFog(Game):
                     return True
             
             else:
-                if all(adjusted_body_landmarks):
+                if adjusted_body_landmarks:
                     l, r = adjusted_body_landmarks
                     hand_l = (l[0] // self.grid_size * self.grid_size, l[1] // self.grid_size * self.grid_size)
                     hand_r = (r[0] // self.grid_size * self.grid_size, r[1] // self.grid_size * self.grid_size)
     
-                    if hand_l != self.prev_l:
-                        self.prev_l = hand_l
-                        if hand_l in self.fogs:
-                            if self.fogs[hand_l][2] > 0:
-                                self.fogs[hand_l][2] -= 200
-                                if self.fogs[hand_l][2] == 0:
-                                    del self.fogs[hand_l]
+                    if hand_l in self.fogs:
+                        if self.fogs[hand_l][2] > 0:
+                            self.fogs[hand_l][2] -= 200
+                            if self.fogs[hand_l][2] == 0:
+                                del self.fogs[hand_l]
                     
-                    if hand_r != self.prev_r:
-                        self.prev_r = hand_r
-                        if hand_r in self.fogs:
-                            if self.fogs[hand_r][2] > 0:
-                                self.fogs[hand_r][2] -= 200
-                                if self.fogs[hand_r][2] == 0:
-                                    del self.fogs[hand_r]
+                    if hand_r in self.fogs:
+                        if self.fogs[hand_r][2] > 0:
+                            self.fogs[hand_r][2] -= 200
+                            if self.fogs[hand_r][2] == 0:
+                                del self.fogs[hand_r]
 
         draw_body_outline(self.screen, body_landmarks, 25, 25, 100, 75)
 
@@ -288,10 +278,10 @@ class ClearTheFog(Game):
             # pygame.draw.rect(self.screen, (255, 0, 0), (i[0], i[1], self.grid_size, self.grid_size), 2)      # Grid
 
     def draw_hand(self, adjusted_body_landmarks):
-        hand_l_coords, hand_r_coords = adjusted_body_landmarks
-        
-        if not all(adjusted_body_landmarks):
-            return
+        if not all(adjusted_body_landmarks): return
 
+        hand_l_coords, hand_r_coords = adjusted_body_landmarks
         self.screen.blit(self.hand_l, hand_l_coords)
         self.screen.blit(self.hand_r, hand_r_coords)
+
+    

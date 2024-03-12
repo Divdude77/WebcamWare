@@ -1,7 +1,7 @@
 import pygame
 
 from cv import *
-from draw import draw_body_outline
+from functions import draw_body_outline
 from games.games import *
 import random
 from components import *
@@ -234,7 +234,7 @@ class GameRunner(Menu):
     def __init__(self, screen):
         super().__init__(screen)
         self.speed = 1
-        self.games = [HoleInTheWall, ClearTheFog]
+        self.games = [ClearTheFog]
         self.inter_game_menu = InterGameMenu(screen)
         self.current_game = None
         self.current_game_won = None
